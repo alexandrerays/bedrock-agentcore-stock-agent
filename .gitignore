@@ -1,0 +1,13 @@
+.env
+*.tfstate
+*.tfstate.*
+*.tfvars
+tfplan
+__pycache__/
+venv/
+.vector_store/
+*.zip
+.terraform/
+.vscode/
+README.md
+.DS_Store
