@@ -10,3 +10,5 @@ faiss-cpu>=1.7.4
 pypdf>=3.17.0
 python-jose[cryptography]>=3.3.0
 sentence-transformers>=2.2.2
+python-dotenv>=1.0.0
+requests>=2.31.0
