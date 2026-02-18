@@ -74,7 +74,7 @@ uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
 curl http://localhost:8000/ping
 
 # Test invoke (no auth in dev mode)
-curl -X POST http://localhost:8000/invoke-dev \
+curl -X POST http://localhost:8000/invocations \
   -H "Content-Type: application/json" \
   -d '{"input": {"prompt": "What is the stock price for Amazon right now?"}}'
 ```
