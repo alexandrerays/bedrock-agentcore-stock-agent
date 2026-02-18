@@ -94,17 +94,6 @@ terraform apply
 terraform output -json
 ```
 
-#### Agentcore Runtime (Console)
-
-The Agentcore runtime is configured via the AWS console:
-
-1. Build and push Docker image to ECR
-2. Create an Agentcore runtime pointing to the ECR image
-3. Configure environment variables from `terraform output`:
-   - `COGNITO_USER_POOL_ID`
-   - `COGNITO_CLIENT_ID`
-   - `AWS_REGION`
-
 ### 4. Test the Deployment
 
 Open `test_agent.ipynb` and run the cells. The notebook reads credentials from `.env` and tests:
@@ -115,23 +104,10 @@ Open `test_agent.ipynb` and run the cells. The notebook reads credentials from `
 
 ## API Endpoints
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/ping` | No | Health check |
-| POST | `/invoke` | Cognito JWT | Authenticated agent invocation |
-| POST | `/invoke-dev` | No (requires `SKIP_AUTH=true`) | Development agent invocation |
-| POST | `/invocations` | No | Bedrock Agentcore standard endpoint |
-
-Request body for invoke endpoints:
-```json
-{
-  "input": {
-    "prompt": "What is the stock price for Amazon right now?"
-  }
-}
-```
-
-Response: streaming newline-delimited JSON events.
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/ping` | Health check |
+| POST | `/invocations` | Bedrock Agentcore standard endpoint |
 
 ## Project Structure
 
@@ -156,7 +132,7 @@ bedrock-stock-agent/
 │   ├── variables.tf              # Input variables
 │   └── outputs.tf                # Output values
 ├── data/                          # Amazon financial documents
-├── scripts/                       # Utility scripts
+├── image/                         # Langfuse test
 ├── test_agent.ipynb               # Test notebook
 ├── Dockerfile                     # Container definition
 ├── requirements.txt               # Python dependencies
@@ -170,14 +146,26 @@ bedrock-stock-agent/
 Copy `.env.example` to `.env` and fill in values:
 
 ```bash
+# AWS Configuration
 AWS_REGION=us-east-1
 ENVIRONMENT=dev
-COGNITO_USER_POOL_ID=<from terraform output>
-COGNITO_CLIENT_ID=<from terraform output>
-COGNITO_USERNAME=<your cognito username>
-COGNITO_PASSWORD=<your cognito password>
-API_ENDPOINT=<your agentcore endpoint>
+
+# Cognito Authentication
+COGNITO_CLIENT_ID=<your-cognito-client-id>
+COGNITO_USERNAME=<your-cognito-username>
+COGNITO_PASSWORD=<your-cognito-password>
+
+# Bedrock Configuration
+USE_BEDROCK_EMBEDDINGS=false
 BEDROCK_MODEL_ID=us.anthropic.claude-3-5-haiku-20241022-v1:0
+
+# AgentCore Configuration
+AGENTCORE_RUNTIME_ARN=<your-agentcore-runtime-arn>
+
+# Langfuse Observability
+LANGFUSE_SECRET_KEY=<your-langfuse-secret-key>
+LANGFUSE_PUBLIC_KEY=<your-langfuse-public-key>
+LANGFUSE_HOST=https://us.cloud.langfuse.com
 ```
 
 For local development, set `SKIP_AUTH=true` to bypass Cognito authentication.
@@ -204,7 +192,3 @@ For local development, set `SKIP_AUTH=true` to bypass Cognito authentication.
 cd terraform
 terraform destroy
 ```
-
-## License
-
-MIT
