@@ -5,10 +5,16 @@ import json
 from typing import AsyncGenerator, Optional
 from contextlib import asynccontextmanager
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+from langfuse import Langfuse
+from langfuse.langchain import CallbackHandler as LangfuseCallbackHandler
 
 from src.agent.graph import create_streaming_agent
 from src.knowledge.retriever import KnowledgeBaseRetriever
@@ -132,9 +138,10 @@ async def event_stream(
             "knowledge_retriever": knowledge_retriever
         }
 
-        # Stream agent events
+        # Stream agent events with Langfuse tracing
         step = 0
-        async for event in agent.astream(initial_state):
+        langfuse_handler = LangfuseCallbackHandler()
+        async for event in agent.astream(initial_state, config={"callbacks": [langfuse_handler]}):
             step += 1
 
             # Extract message from agent node
@@ -197,6 +204,8 @@ async def event_stream(
             "type": "error",
             "content": f"Error processing query: {str(e)}"
         }) + "\n"
+    finally:
+        Langfuse().flush()
 
 
 @app.post("/invocations")
